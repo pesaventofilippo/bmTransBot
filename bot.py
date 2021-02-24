@@ -5,6 +5,7 @@ from telepotpro.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from threading import Thread
 from json import load as jsload
 from os.path import abspath, dirname, join
+from hashlib import sha256
 
 with open(join(dirname(abspath(__file__)), "settings.json")) as settings_file:
     js_settings = jsload(settings_file)
@@ -40,9 +41,11 @@ def query(msg):
 
     if parsed:
         desc = parsed if len(parsed) < 18 else parsed[:15] + "..."
+        shaId = sha256(parsed.encode("utf-8")).hexdigest()
+        shaBmId = sha256((parsed+"!11!!1").encode("utf-8")).hexdigest()
         results = [
             InlineQueryResultArticle(
-                id=f"#{queryString}",
+                id=shaId,
                 title="BM Translate",
                 input_message_content=InputTextMessageContent(
                     message_text=parsed
@@ -50,7 +53,7 @@ def query(msg):
                 description=desc
             ),
             InlineQueryResultArticle(
-                id=f"#{queryString}_1!",
+                id=shaBmId,
                 title="BM Translate!11!!1",
                 input_message_content=InputTextMessageContent(
                     message_text=parsed + "!11!!1"
