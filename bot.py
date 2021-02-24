@@ -39,6 +39,7 @@ def query(msg):
             parsed += c
 
     if parsed:
+        desc = parsed if len(parsed) < 18 else parsed[:15] + "..."
         results = [
             InlineQueryResultArticle(
                 id=f"#{queryString}",
@@ -46,7 +47,15 @@ def query(msg):
                 input_message_content=InputTextMessageContent(
                     message_text=parsed
                 ),
-                description=parsed
+                description=desc
+            ),
+            InlineQueryResultArticle(
+                id=f"#{queryString}_1!",
+                title="BM Translate!11!!1",
+                input_message_content=InputTextMessageContent(
+                    message_text=parsed + "!11!!1"
+                ),
+                description=desc + "!11!!1"
             )
         ]
     else:
