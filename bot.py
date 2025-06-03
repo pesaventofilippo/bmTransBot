@@ -1,16 +1,15 @@
-from time import sleep
-from telepotpro import Bot, glance, api as tgapi
+from hashlib import sha256
+from json import load as jsload
+from flask import Flask, request
+from telepotpro import Bot, glance
+from telepotpro.loop import OrderedWebhook
 from telepotpro.namedtuple import InlineQueryResultArticle, InputTextMessageContent
 from telepotpro.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from threading import Thread
-from json import load as jsload
-from hashlib import sha256
 
 with open("settings.json") as f:
     settings = jsload(f)
-    if settings.get("api_server"):
-        tgapi.set_api_url(settings["api_server"])
 
+app = Flask(__name__)
 bot = Bot(settings["token"])
 
 
@@ -66,12 +65,14 @@ def query(msg):
     bot.answerInlineQuery(queryId, results, cache_time=86400, is_personal=False)
 
 
-def accept_message(msg):
-    Thread(target=reply, args=[msg]).start()
+webhook = OrderedWebhook(bot, {'chat': reply, 'inline_query': query})
+@app.route('/', methods=['GET', 'POST'])
+def pass_update():
+    webhook.feed(request.data)
+    return 'ok', 200
 
-def incoming_query(msg):
-    Thread(target=query, args=[msg]).start()
 
-bot.message_loop({'chat': accept_message, 'inline_query': incoming_query})
-while True:
-    sleep(60)
+if __name__ == "__main__":
+    bot.setWebhook(settings["webhook_url"])
+    webhook.run_as_thread()
+    app.run("127.0.0.1", port=settings["web_port"], debug=False)
